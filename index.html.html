@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>간호학과 상식 퀴즈</title>
+  <style>
+    :root {
+      --navy: #263b55;
+      --blue: #6d91bd;
+      --pale: #f3f7fc;
+      --line: #dce5ef;
+      --green: #279765;
+      --red: #d9535d;
+      --text: #253449;
+      --muted: #718096;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background: linear-gradient(145deg, #f7f9fc, #eaf1f9);
+    }
+    button { font: inherit; cursor: pointer; }
+    .screen {
+      min-height: 100vh;
+      width: min(900px, 100%);
+      margin: 0 auto;
+      padding: 38px 24px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .home {
+      justify-content: center;
+      text-align: center;
+      gap: 18px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      color: var(--navy);
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: -1.5px;
+    }
+    .home p { margin: 0 0 22px; color: var(--muted); }
+    .difficulty-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: min(330px, 100%);
+    }
+    .start-btn, .next-btn {
+      border: 0;
+      border-radius: 12px;
+      background: var(--navy);
+      color: white;
+      font-weight: 700;
+      padding: 15px 22px;
+      transition: transform .15s, background .15s;
+    }
+    .start-btn:hover, .next-btn:hover { background: #385778; transform: translateY(-1px); }
+    .game {
+      justify-content: flex-start;
+      position: relative;
+    }
+    .topline {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 14px;
+    }
+    .progress {
+      width: 100%;
+      height: 7px;
+      border-radius: 20px;
+      background: #dfe7f0;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    .progress-fill { height: 100%; width: 20%; background: var(--blue); transition: width .25s; }
+    .question-area {
+      width: 100%;
+      margin: clamp(45px, 9vh, 85px) 0 34px;
+      text-align: center;
+    }
+    .question-number {
+      color: var(--blue);
+      font-size: .95rem;
+      font-weight: 800;
+      margin-bottom: 13px;
+    }
+    .question {
+      font-size: clamp(1.25rem, 3vw, 1.7rem);
+      font-weight: 750;
+      line-height: 1.55;
+      word-break: keep-all;
+      margin: 0;
+    }
+    .choices {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .choice {
+      min-height: 92px;
+      padding: 18px 16px;
+      border: 2px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255,255,255,.88);
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.45;
+      font-weight: 600;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color .15s, background .15s;
+    }
+    .choice:hover:not(:disabled) { border-color: var(--blue); background: white; }
+    .choice .number {
+      flex: 0 0 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #edf2f8;
+      color: #52677f;
+      font-weight: 800;
+    }
+    .choice:disabled { cursor: default; opacity: 1; }
+    .choice.correct { border-color: var(--green); background: #f0faf5; }
+    .choice.correct .number { background: #d8f1e4; color: #18764b; }
+    .choice.wrong { border-color: var(--red); background: #fff4f4; }
+    .choice.wrong .number { background: #ffe0e2; color: #b8323c; }
+    .feedback {
+      width: 100%;
+      min-height: 100px;
+      padding: 18px 20px;
+      border-radius: 13px;
+      background: rgba(255,255,255,.76);
+      border: 1px solid var(--line);
+      line-height: 1.6;
+      margin-top: 2px;
+    }
+    .feedback strong { display: block; margin-bottom: 5px; color: var(--navy); }
+    .feedback p { margin: 0; color: #526174; font-size: .95rem; }
+    .feedback.empty { visibility: hidden; }
+    .bottom-row {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      margin-top: auto;
+      padding-top: 18px;
+    }
+    .next-btn { min-width: 145px; }
+    .next-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .result {
+      justify-content: center;
+      text-align: center;
+      gap: 22px;
+    }
+    .result-label { color: var(--muted); font-weight: 700; font-size: 1.05rem; }
+    .score {
+      font-size: clamp(3.8rem, 13vw, 6.5rem);
+      color: var(--navy);
+      font-weight: 850;
+      letter-spacing: -3px;
+      line-height: 1.1;
+    }
+    .result .next-btn { margin-top: 16px; }
+    @media (max-width: 560px) {
+      .screen { padding: 24px 17px 22px; }
+      .question-area { margin-top: 48px; margin-bottom: 27px; }
+      .choices { gap: 10px; }
+      .choice { min-height: 88px; padding: 13px 11px; gap: 8px; font-size: .91rem; }
+      .choice .number { flex-basis: 26px; height: 26px; font-size: .85rem; }
+      .feedback { padding: 15px; }
+      .bottom-row { padding-top: 14px; }
+      .next-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app"></main>
+  <script>
+    const quizSets = {
+      easy: [
+        { q: "간호사가 환자에게 투약하기 전 가장 먼저 확인해야 할 사항은 무엇인가요?", a: ["환자의 이름과 등록번호 등 환자 확인", "병실의 온도", "보호자의 직업", "식사 선호도"], c: 0, e: "투약 전에는 환자 확인을 통해 투약 대상자가 맞는지 확인해야 합니다. 정확한 환자 확인은 투약 오류를 예방하는 기본 절차입니다." },
+        { q: "체온을 측정하는 대표적인 목적은 무엇인가요?", a: ["혈액형 확인", "체온 상태와 발열 여부 확인", "청력 확인", "근력 측정"], c: 1, e: "체온은 활력징후 중 하나로, 신체의 열 상태와 발열 여부 등 건강 상태를 파악하는 데 사용됩니다." },
+        { q: "손 위생이 특히 중요한 이유는 무엇인가요?", a: ["간호 시간을 줄이기 위해", "손을 건조하게 유지하기 위해", "미생물 전파와 의료관련감염을 예방하기 위해", "환자의 체온을 낮추기 위해"], c: 2, e: "손 위생은 의료진의 손을 통한 미생물 전파를 줄여 환자와 의료진을 감염으로부터 보호하는 핵심 방법입니다." },
+        { q: "혈압을 측정할 때 사용하는 기구는 무엇인가요?", a: ["청진기만", "혈압계", "체온계", "산소포화도 측정기"], c: 1, e: "혈압계는 혈관 내 혈압을 측정하는 기구입니다. 일반적으로 커프를 팔에 감아 측정합니다." },
+        { q: "간호 기록을 작성할 때 가장 적절한 태도는 무엇인가요?", a: ["추측한 내용을 기록한다", "기억이 날 때 한꺼번에 작성한다", "객관적이고 정확하게 기록한다", "불리한 내용은 생략한다"], c: 2, e: "간호 기록은 환자 상태와 간호 내용을 전달하는 중요한 자료이므로 사실에 근거해 객관적이고 정확하게 작성해야 합니다." }
+      ],
+      medium: [
+        { q: "성인의 정상 안정 시 호흡수로 가장 적절한 범위는 무엇인가요?", a: ["분당 4~8회", "분당 12~20회", "분당 25~35회", "분당 40~50회"], c: 1, e: "일반적으로 성인의 안정 시 정상 호흡수는 분당 약 12~20회입니다. 연령과 임상 상황에 따라 해석이 달라질 수 있습니다." },
+        { q: "무균술의 주된 목적은 무엇인가요?", a: ["환자의 통증을 없애는 것", "체온을 일정하게 유지하는 것", "미생물 오염을 최소화하거나 방지하는 것", "혈압을 낮추는 것"], c: 2, e: "무균술은 시술 부위나 멸균 물품이 미생물에 오염되지 않도록 관리해 감염 위험을 줄이는 방법입니다." },
+        { q: "산소포화도(SpO₂)를 측정하는 기구는 무엇인가요?", a: ["맥박산소측정기", "혈당측정기", "심전도 모니터", "검안경"], c: 0, e: "맥박산소측정기는 손가락 등에 센서를 부착해 말초 산소포화도와 맥박수를 비침습적으로 측정합니다." },
+        { q: "간호과정의 일반적인 순서로 옳은 것은 무엇인가요?", a: ["계획-사정-평가-진단-수행", "사정-진단-계획-수행-평가", "진단-수행-사정-계획-평가", "평가-진단-계획-사정-수행"], c: 1, e: "간호과정은 일반적으로 사정, 간호진단, 계획, 수행, 평가의 순서로 진행됩니다." },
+        { q: "환자에게 낙상 위험이 높다고 판단될 때 적절한 간호중재는 무엇인가요?", a: ["침상 난간을 항상 내린다", "호출벨을 손이 닿지 않는 곳에 둔다", "침상 높이를 낮추고 호출벨을 가까이 둔다", "환자가 혼자 이동하도록 권한다"], c: 2, e: "침상 높이를 낮추고 호출벨을 가까이 두며 주변 환경을 정리하는 것은 낙상 위험을 줄이는 기본적인 중재입니다." }
+      ],
+      hard: [
+        { q: "의료기관에서 표준주의(Standard Precautions)를 적용해야 하는 대상은 누구인가요?", a: ["감염이 확인된 환자만", "혈액검사 결과가 양성인 환자만", "모든 환자", "격리실에 입원한 환자만"], c: 2, e: "표준주의는 감염 여부가 확인되지 않은 경우를 포함해 모든 환자에게 적용하는 기본 감염관리 원칙입니다." },
+        { q: "의식이 없는 성인 환자에게 심폐소생술을 시행할 때, 정상 호흡이 없거나 비정상적인 경우 우선적으로 해야 할 행동은 무엇인가요?", a: ["물을 마시게 한다", "응급의료체계를 활성화하고 심폐소생술을 시작한다", "환자를 혼자 두고 경과를 관찰한다", "다리를 마사지한다"], c: 1, e: "반응이 없고 정상 호흡이 없다면 즉시 도움과 자동심장충격기를 요청하고, 가슴압박을 포함한 심폐소생술을 시작해야 합니다. 실제 상황에서는 최신 교육 지침과 현장 프로토콜을 따릅니다." },
+        { q: "정맥주사 부위에서 부종, 창백함, 차가움이 관찰될 때 우선 의심할 수 있는 합병증은 무엇인가요?", a: ["침윤", "정맥염", "저혈당", "고혈압"], c: 0, e: "침윤은 비발포성 수액 등이 혈관 밖 주변 조직으로 새는 상태로, 부종과 창백함, 차가움 등이 나타날 수 있습니다." },
+        { q: "환자의 자기결정권을 존중하는 간호 실무로 가장 적절한 것은 무엇인가요?", a: ["환자에게 알리지 않고 보호자 결정만 따른다", "환자의 이해 수준에 맞게 정보를 제공하고 의사결정을 돕는다", "간호사가 환자 대신 모든 결정을 내린다", "환자의 질문을 제한한다"], c: 1, e: "충분한 정보를 이해할 수 있도록 제공하고 환자의 의사와 선택을 존중하는 것은 자율성 및 자기결정권을 존중하는 간호 실무입니다." },
+        { q: "간호사가 투약 오류 가능성을 발견했을 때 가장 적절한 대응은 무엇인가요?", a: ["기록하지 않고 넘어간다", "동료에게만 말하고 조치를 미룬다", "환자 상태를 우선 확인하고 즉시 보고 및 기관 절차에 따라 대응한다", "오류가 드러나지 않도록 기록을 수정한다"], c: 2, e: "투약 오류가 발생했거나 의심되면 환자 안전을 우선해 상태를 확인하고 즉시 보고하며, 기관의 절차에 따라 필요한 조치를 해야 합니다." }
+      ]
+    };
+
+    const labels = ["①", "②", "③", "④"];
+    let currentQuestions = [];
+    let questionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    const app = document.getElementById("app");
+
+    function showHome() {
+      app.innerHTML = `
+        <section class="screen home">
+          <h1>간호학과 상식 퀴즈</h1>
+          <p>난이도를 선택하고 5문제에 도전해 보세요.</p>
+          <div class="difficulty-list">
+            <button class="start-btn" data-level="easy">하 난이도 시작</button>
+            <button class="start-btn" data-level="medium">중 난이도 시작</button>
+            <button class="start-btn" data-level="hard">상 난이도 시작</button>
+          </div>
+        </section>`;
+      app.querySelectorAll("[data-level]").forEach(button => {
+        button.addEventListener("click", () => startGame(button.dataset.level));
+      });
+    }
+
+    function startGame(level) {
+      currentQuestions = quizSets[level];
+      questionIndex = 0;
+      score = 0;
+      answered = false;
+      showQuestion();
+    }
+
+    function showQuestion() {
+      answered = false;
+      const item = currentQuestions[questionIndex];
+      const progress = ((questionIndex + 1) / 5) * 100;
+      app.innerHTML = `
+        <section class="screen game">
+          <div class="topline"><span>간호학과 상식 퀴즈</span><span>점수 ${score}점</span></div>
+          <div class="progress"><div class="progress-fill" style="width:${progress}%"></div></div>
+          <div class="question-area">
+            <div class="question-number">QUESTION ${questionIndex + 1} / 5</div>
+            <h2 class="question">${item.q}</h2>
+          </div>
+          <div class="choices">
+            ${item.a.map((answer, i) => `
+              <button class="choice" data-choice="${i}">
+                <span class="number">${labels[i]}</span><span>${answer}</span>
+              </button>`).join("")}
+          </div>
+          <div class="feedback empty" id="feedback" aria-live="polite"></div>
+          <div class="bottom-row">
+            <button class="next-btn" id="next" disabled>${questionIndex === 4 ? "결과 확인" : "다음 문제"}</button>
+          </div>
+        </section>`;
+
+      app.querySelectorAll("[data-choice]").forEach(button => {
+        button.addEventListener("click", () => chooseAnswer(Number(button.dataset.choice)));
+      });
+      document.getElementById("next").addEventListener("click", goNext);
+    }
+
+    function chooseAnswer(selected) {
+      if (answered) return;
+      answered = true;
+      const item = currentQuestions[questionIndex];
+      const correct = selected === item.c;
+      if (correct) score++;
+
+      app.querySelectorAll("[data-choice]").forEach((button, index) => {
+        button.disabled = true;
+        if (index === item.c) button.classList.add("correct");
+        if (index === selected && !correct) button.classList.add("wrong");
+      });
+
+      const feedback = document.getElementById("feedback");
+      feedback.classList.remove("empty");
+      feedback.innerHTML = `<strong>${correct ? "정답입니다!" : "오답입니다."} ${correct ? "+1점" : ""}</strong><p>${item.e}</p>`;
+      document.querySelector(".topline span:last-child").textContent = `점수 ${score}점`;
+      document.getElementById("next").disabled = false;
+    }
+
+    function goNext() {
+      if (!answered) return;
+      if (questionIndex === 4) showResult();
+      else {
+        questionIndex++;
+        showQuestion();
+      }
+    }
+
+    function showResult() {
+      app.innerHTML = `
+        <section class="screen result">
+          <div class="result-label">퀴즈 결과</div>
+          <div class="score">${score}<span style="font-size:.48em;color:#91a0b2"> / 5</span></div>
+          <button class="next-btn" id="restart">다시 시작</button>
+        </section>`;
+      document.getElementById("restart").addEventListener("click", showHome);
+    }
+
+    showHome();
+  </script>
+</body>
+</html>
